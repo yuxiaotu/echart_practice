@@ -83,6 +83,7 @@
   <script src="./js/color.js"></script>
   <script src="./js/baseBarLine.js"></script>
   <script src="./js/FileSaver.min.js"></script>
+  <script src="./js/basePie.js"></script>
   <script>
     const { createApp, ref, nextTick, onMounted } = Vue;
     const chartTypeList = chartTypes;
@@ -126,7 +127,11 @@
 
         // 切换图表类型
         const switchChartType = function (type) {
-          chartInit.setOption(baseBarLineOptions(type, xAxisData.value, chartData.value));
+          if (type == 'pie') {
+            createChart(basePieOptions(chartData.value, xAxisData.value))
+          } else {
+            createChart(baseBarLineOptions(type, xAxisData.value, chartData.value));
+          }
         };
 
 
@@ -135,7 +140,7 @@
           type.value = 'bar';
           xAxisData.value = ['A', 'B', 'C', 'D', 'E'];
           chartData.value = [10, 20, 30, 40, 50];
-          createChart(baseBarLineOptions(type.value, yAxisData.value, chartData.value));
+          createChart(baseBarLineOptions(type.value, xAxisData.value, chartData.value));
           chartInit.setOption({color: '#2b73af'})
         };
 
