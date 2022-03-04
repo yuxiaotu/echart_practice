@@ -8,7 +8,7 @@ const series = function(chartType, chartData) {
   } else {
     for (let row of chartData) {
       res.push({
-        type: type,
+        type: chartType,
         data: row
       })
     }

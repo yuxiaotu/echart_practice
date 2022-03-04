@@ -159,7 +159,7 @@
           chartInit.setOption({ color: "#2b73af" });
         };
 
-        // 切换图表的主题色
+        // 切换图表的主题色cd
         const toggleChartThemeColor = function (myColor) {
           chartInit.setOption({ color: myColor });
         };
@@ -192,17 +192,24 @@
           }
 
           tableData.value = newData;
-          chartData.value = newData;
+          //chartData.value = newData;
 
           cancelTable();
 
           xAxisData.value = newData[0].slice(1);
           chartData.value = newData[1].slice(1);
 
+          let temp = []
+          for (i of newData.slice(1)) {
+            temp.push(i.slice(1));
+          }
+
+          console.log("---", temp);
+
           let options = {
             xAxis: xAxis('category', xAxisData.value),
             yAxis: yAxis('value', []),
-            series: series(type.value, chartData.value)
+            series: series(type.value, temp)
           }
           
           createChart(options);
