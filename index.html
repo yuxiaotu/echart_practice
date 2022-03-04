@@ -84,6 +84,9 @@
   <script src="./js/color.js"></script>
   <script src="./js/baseBarLine.js"></script>
   <script src="./component/table.js"></script>
+  <script src="./util/xAxis.js"></script>
+  <script src="./util/yAxis.js"></script>
+  <script src="./util/series.js"></script>
   <script>
     const { createApp, ref, nextTick, onMounted, reactive } = Vue;
     const chartTypeList = chartTypes;
@@ -91,30 +94,32 @@
 
     composition = {
       setup() {
-        let chartBox = ref(null); // 图表内容
-        let tableBox = ref(null); // 数据表格内容
-        let mark = ref(null); // 弹窗模板
-        let chartTitle = ref(null); // 图表标题
-        let myTableDom = ref(null);
+        let chartBox = ref(null); // Echarts 图表显示节点
+        let tableBox = ref(null); // 表格数据节点
+        let mark = ref(null); // 弹窗覆盖物节点
+        let myTableDom = ref(null); // 表格数据内容节点
 
+        let chartTitle = ref(null); // 图表标题
         let chartTypes = ref(chartTypeList); // 图标类型
-        let colors = ref(colorList); // 主题色彩
-        let chartInit = ref(null); // echarts 初始化
+        let colors = ref(colorList); // 主题色
+        let chartInit = ref(null); //  Echarts 初始化变量
         let type = ref(null); // 图表类型
-        let xAxisData = ref(null); // x轴
-        let yAxisData = ref(null); // y轴
+        let xAxisData = ref(null); // x轴相关数据
+        let yAxisData = ref(null); // y轴相关数据
         let chartData = ref(null); // 图表数据
 
         let tableData = ref([
-          ['Item', 'a', 'b', 'c', 'd'],
-          ['Data', 10, 20, 30, 40]
+          ['商品', '花生', '瓜子', '巧克力', '矿泉水'],
+          ['销量', 20, 10, 15, 40]
         ]);
 
+        // 弹出表格弹窗
         const toggleTableBox = function () {
           tableBox.value.style.display = "block";
           mark.value.style.display = "block";
         };
 
+        // 关闭表格弹窗
         const cancelTable = function () {
           tableBox.value.style.display = "none";
           mark.value.style.display = "none";
@@ -131,6 +136,7 @@
         const switchChartType = function (type) {
           if (type == "pie") {
             createChart(basePieOptions(chartData.value, xAxisData.value));
+
           } else {
             createChart(
               baseBarLineOptions(type, xAxisData.value, chartData.value)
@@ -141,20 +147,24 @@
         // 案例数据
         const testData = function () {
           type.value = "bar";
-          xAxisData.value = ["A", "B", "C", "D", "E"];
-          chartData.value = [10, 20, 30, 40, 50];
-          createChart(
-            baseBarLineOptions(type.value, xAxisData.value, chartData.value)
-          );
+          xAxisData.value = tableData.value[0].slice(1);
+          chartData.value = tableData.value[1].slice(1);
+
+          let options = {
+            xAxis: xAxis('category', xAxisData.value),
+            yAxis: yAxis('value', []),
+            series: series(type.value, chartData.value)
+          }
+          createChart(options);
           chartInit.setOption({ color: "#2b73af" });
         };
 
-        // 改变图表的主题颜色
+        // 切换图表的主题色
         const toggleChartThemeColor = function (myColor) {
           chartInit.setOption({ color: myColor });
         };
 
-        // 导出图片
+        // 将图表导出为图片
         const toImg = function () {
           html2canvas(chartBox.value).then((canvas) => {
             canvas.toBlob(function (blob) {
@@ -168,6 +178,7 @@
           chartInit.setOption({ title: { text: chartTitle.value } });
         };
 
+        // 从表格中读取数据
         const getMyTableData = function() {
           let nodesText = myTableDom.value.$el.innerText;
           let rows = nodesText.split('\n');
@@ -179,8 +190,23 @@
               newData.push(res);
             }
           }
-          console.log(newData);
+
+          tableData.value = newData;
+          chartData.value = newData;
+
+          cancelTable();
+
+          xAxisData.value = newData[0].slice(1);
+          chartData.value = newData[1].slice(1);
+
+          let options = {
+            xAxis: xAxis('category', xAxisData.value),
+            yAxis: yAxis('value', []),
+            series: series(type.value, chartData.value)
+          }
           
+          createChart(options);
+          chartInit.setOption({ color: "#2b73af" });
         }
 
         onMounted(() => {
