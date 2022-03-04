@@ -2,6 +2,7 @@
 <html>
   <head>
     <link href="./style/default.css" rel="stylesheet" />
+    <link href="./style/table.css" rel="stylesheet" />
   </head>
 
   <body>
@@ -49,43 +50,42 @@
           <button class="title-btn" @click="updateTitle">确定</button>
         </div>
 
-        <!-- <h2>数据</h2>
-        <div>
-          <button class="inputBtn" @click="toggleTableBox">导入</button>
-          <button class="inputBtn">编辑</button>
-        </div> -->
+        <h2>数据</h2>
+        <div class="data-area">
+          <button class="inputBtn">导入</button>
+          <button class="inputBtn" @click="toggleTableBox">编辑</button>
+        </div>
 
         <div>
-          <button class="download-btn" @click="toImg">输出 PNG</button>
+          <button class="download-btn" @click="toImg">下载 PNG</button>
         </div>
       </div>
 
       <!-- 蒙版 -->
-      <!-- <div class="mark" ref="mark"></div> -->
+      <div class="mark" ref="mark"></div>
 
       <!-- 表格 -->
-      <!-- <div class="table-box" ref="tableBox">
-        <button 
-          class="inputBtn"
-          @click="cancelTable"
-        >取消</button>
-        <button
-          class="inputBtn"
-        >确定</button>
-      </div> -->
+      <div class="table-box" ref="tableBox">
+        <button class="btn" @click="cancelTable">取消</button>
+        <button class="btn" @click="getMyTableData">确定</button>
+        <div class="table-content">
+          <my-table :data="tableData" ref="myTableDom"/>
+        </div>
+      </div>
     </div>
   </body>
 
   <script src="./js/vue.global.js"></script>
   <script src="./js/echarts.js"></script>
   <script src="./js/html2canvas.js"></script>
+  <script src="./js/FileSaver.min.js"></script>
+  <script src="./js/basePie.js"></script>
   <script src="./js/chartType.js"></script>
   <script src="./js/color.js"></script>
   <script src="./js/baseBarLine.js"></script>
-  <script src="./js/FileSaver.min.js"></script>
-  <script src="./js/basePie.js"></script>
+  <script src="./component/table.js"></script>
   <script>
-    const { createApp, ref, nextTick, onMounted } = Vue;
+    const { createApp, ref, nextTick, onMounted, reactive } = Vue;
     const chartTypeList = chartTypes;
     const colorList = colors;
 
@@ -95,18 +95,20 @@
         let tableBox = ref(null); // 数据表格内容
         let mark = ref(null); // 弹窗模板
         let chartTitle = ref(null); // 图表标题
+        let myTableDom = ref(null);
 
         let chartTypes = ref(chartTypeList); // 图标类型
         let colors = ref(colorList); // 主题色彩
-        let chartInit = ref(null);
-        let type = ref(null);
-        let xAxisData = ref(null);
-        let yAxisData = ref(null);
-        let chartData = ref(null);
+        let chartInit = ref(null); // echarts 初始化
+        let type = ref(null); // 图表类型
+        let xAxisData = ref(null); // x轴
+        let yAxisData = ref(null); // y轴
+        let chartData = ref(null); // 图表数据
 
-        onMounted(() => {
-          chartInit = echarts.init(chartBox.value);
-        })
+        let tableData = ref([
+          ['Item', 'a', 'b', 'c', 'd'],
+          ['Data', 10, 20, 30, 40]
+        ]);
 
         const toggleTableBox = function () {
           tableBox.value.style.display = "block";
@@ -127,41 +129,63 @@
 
         // 切换图表类型
         const switchChartType = function (type) {
-          if (type == 'pie') {
-            createChart(basePieOptions(chartData.value, xAxisData.value))
+          if (type == "pie") {
+            createChart(basePieOptions(chartData.value, xAxisData.value));
           } else {
-            createChart(baseBarLineOptions(type, xAxisData.value, chartData.value));
+            createChart(
+              baseBarLineOptions(type, xAxisData.value, chartData.value)
+            );
           }
         };
 
-
         // 案例数据
         const testData = function () {
-          type.value = 'bar';
-          xAxisData.value = ['A', 'B', 'C', 'D', 'E'];
+          type.value = "bar";
+          xAxisData.value = ["A", "B", "C", "D", "E"];
           chartData.value = [10, 20, 30, 40, 50];
-          createChart(baseBarLineOptions(type.value, xAxisData.value, chartData.value));
-          chartInit.setOption({color: '#2b73af'})
+          createChart(
+            baseBarLineOptions(type.value, xAxisData.value, chartData.value)
+          );
+          chartInit.setOption({ color: "#2b73af" });
         };
 
         // 改变图表的主题颜色
-        const toggleChartThemeColor = function(myColor) {
-          chartInit.setOption({color: myColor})
-        }
+        const toggleChartThemeColor = function (myColor) {
+          chartInit.setOption({ color: myColor });
+        };
 
         // 导出图片
-        const toImg = function() {
-          html2canvas(chartBox.value).then(canvas => {
-            canvas.toBlob(function(blob) {
+        const toImg = function () {
+          html2canvas(chartBox.value).then((canvas) => {
+            canvas.toBlob(function (blob) {
               saveAs(blob, "chart.png");
-            })
-          })
-        }
+            });
+          });
+        };
 
         // 更新标题
-        const updateTitle = function() {
-          chartInit.setOption({title: {text: chartTitle.value}});
+        const updateTitle = function () {
+          chartInit.setOption({ title: { text: chartTitle.value } });
+        };
+
+        const getMyTableData = function() {
+          let nodesText = myTableDom.value.$el.innerText;
+          let rows = nodesText.split('\n');
+          let newData = [];
+
+          for (let i of rows) {
+            let res = i.split('\t');
+            if(!res.every((item) => item == '')) {
+              newData.push(res);
+            }
+          }
+          console.log(newData);
+          
         }
+
+        onMounted(() => {
+          chartInit = echarts.init(chartBox.value);
+        });
 
         return {
           chartBox,
@@ -172,17 +196,22 @@
           type,
           chartInit,
           chartTitle,
+          tableData,
+          myTableDom,
           switchChartType,
           toggleTableBox,
           cancelTable,
           testData,
           toggleChartThemeColor,
           toImg,
-          updateTitle
+          updateTitle,
+          getMyTableData
         };
       },
     };
 
-    createApp(composition).mount("#app");
+    createApp(composition)
+      .component('MyTable', MyTable)
+      .mount("#app");
   </script>
 </html>
