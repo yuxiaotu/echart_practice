@@ -52,7 +52,7 @@
 
         <h2>数据</h2>
         <div class="data-area">
-          <button class="inputBtn">导入</button>
+          <button class="inputBtn" disabled>导入</button>
           <button class="inputBtn" @click="toggleTableBox">编辑</button>
         </div>
 
@@ -66,10 +66,22 @@
 
       <!-- 表格 -->
       <div class="table-box" ref="tableBox">
-        <button class="btn" @click="cancelTable">取消</button>
-        <button class="btn" @click="getMyTableData">确定</button>
+        <button 
+          class="btn" 
+          @click="cancelTable" 
+        >取消</button>
+        <button 
+          class="btn" 
+          @click="getMyTableData"
+          style="background-color: #2b73af; color: #fff">确定</button>
+        <!-- <input type="text" class="rows-columns-input"/> 行 × 
+        <input type="text" class="rows-columns-input" /> 列 -->
+
         <div class="table-content">
-          <my-table :data="tableData" ref="myTableDom"/>
+          <my-table
+            :data="tableData"
+            ref="myTableDom"
+          />
         </div>
       </div>
     </div>
@@ -89,8 +101,8 @@
   <script src="./util/series.js"></script>
   <script>
     const { createApp, ref, nextTick, onMounted, reactive } = Vue;
-    const chartTypeList = chartTypes;
-    const colorList = colors;
+    const chartTypeList = chartTypes; // 图表类型列表
+    const colorList = colors; // 颜色列表
 
     composition = {
       setup() {
@@ -107,10 +119,9 @@
         let xAxisData = ref(null); // x轴相关数据
         let yAxisData = ref(null); // y轴相关数据
         let chartData = ref(null); // 图表数据
-
         let tableData = ref([
-          ['商品', '花生', '瓜子', '巧克力', '矿泉水'],
-          ['销量', 20, 10, 15, 40]
+          ["商品", "花生", "瓜子", "巧克力", "矿泉水"],
+          ["销量", 20, 10, 15, 40],
         ]);
 
         // 弹出表格弹窗
@@ -136,7 +147,6 @@
         const switchChartType = function (type) {
           if (type == "pie") {
             createChart(basePieOptions(chartData.value, xAxisData.value));
-
           } else {
             createChart(
               baseBarLineOptions(type, xAxisData.value, chartData.value)
@@ -151,10 +161,10 @@
           chartData.value = tableData.value[1].slice(1);
 
           let options = {
-            xAxis: xAxis('category', xAxisData.value),
-            yAxis: yAxis('value', []),
-            series: series(type.value, chartData.value)
-          }
+            xAxis: xAxis("category", xAxisData.value),
+            yAxis: yAxis("value", []),
+            series: series(type.value, chartData.value),
+          };
           createChart(options);
           chartInit.setOption({ color: "#2b73af" });
         };
@@ -179,42 +189,37 @@
         };
 
         // 从表格中读取数据
-        const getMyTableData = function() {
+        const getMyTableData = function () {
           let nodesText = myTableDom.value.$el.innerText;
-          let rows = nodesText.split('\n');
+          let rows = nodesText.split("\n");
           let newData = [];
 
           for (let i of rows) {
-            let res = i.split('\t');
-            if(!res.every((item) => item == '')) {
+            let res = i.split("\t");
+            if (!res.every((item) => item == "")) {
               newData.push(res);
             }
           }
 
           tableData.value = newData;
-          //chartData.value = newData;
-
           cancelTable();
-
           xAxisData.value = newData[0].slice(1);
           chartData.value = newData[1].slice(1);
+          let temp = [];
 
-          let temp = []
           for (i of newData.slice(1)) {
             temp.push(i.slice(1));
           }
 
-          console.log("---", temp);
-
           let options = {
-            xAxis: xAxis('category', xAxisData.value),
-            yAxis: yAxis('value', []),
-            series: series(type.value, temp)
-          }
-          
+            xAxis: xAxis("category", xAxisData.value),
+            yAxis: yAxis("value", []),
+            series: series(type.value, temp),
+          };
+
           createChart(options);
           chartInit.setOption({ color: "#2b73af" });
-        }
+        };
 
         onMounted(() => {
           chartInit = echarts.init(chartBox.value);
@@ -238,13 +243,11 @@
           toggleChartThemeColor,
           toImg,
           updateTitle,
-          getMyTableData
+          getMyTableData,
         };
       },
     };
 
-    createApp(composition)
-      .component('MyTable', MyTable)
-      .mount("#app");
+    createApp(composition).component("MyTable", MyTable).mount("#app");
   </script>
 </html>
